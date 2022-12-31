@@ -19,18 +19,19 @@ todayskanji = allkanji[random.randint(0, len(allkanji))]
 
 
 cities = ["New York"]
-weather_str = ""
+weather_str = "```"
 for x in cities:
     soup = BeautifulSoup((requests.get(f"https://www.google.com/search?q="+"weather "+x, headers=headers)).text, 'html.parser')
     temp = soup.find('span', attrs={'class': 'wob_t q8U8x'}).text
     temp = math.trunc((int(temp) - 32) * 0.5556)
     condition = soup.find('span', id='wob_dc').text
-    #print(x + " : " + str(temp) + "C " + condition + "\n")
-    weather_str += x + " : " + str(temp) + "C " + condition + "\n"
+    #weather_str += x + " : " + str(temp) + "C " + condition + "\n"  
+    weather_str += f"{x:16} : {temp:3} C {condition:} \n"
     
+weather_str += "```"
 print("Chatot Weather" + "\n" + weather_str)
 
-    
+
 res = requests.get(f'https://jisho.org/search/' + todayskanji + '%20%23kanji', headers=headers)
 soup = BeautifulSoup(res.text, 'html.parser')
     
@@ -104,28 +105,31 @@ def main_readings(soup):
     
 def get_on_romanji(on):
     on_result = ""
-    for x in range(0, len(on)):
-        if on[x] == "ョ" and on[x-1] == "シ":
-            on_result += 'sho'
-        if on[x] == "ュ" and on[x-1] == "シ":
-            on_result += 'shu'
-        if on[x] == "ャ" and on[x-1] == "シ":
-            on_result += 'sha'
-        if on[x] == "ョ" and on[x-1] == "ジ":
-            on_result += 'jo'
-        if on[x] == "ュ" and on[x-1] == "ジ":
-            on_result += 'ju'
-        if on[x] == "ャ" and on[x-1] == "ジ":
-            on_result += 'ja'
-
     for x in on:
         if x in katarom_map:
             on_result += katarom_map[x]
         if x in dakukatarom_map:
             on_result += dakukatarom_map[x]
         if x in smallkata:
-            on_result = on_result[:len(on_result)-1]
-            on_result += smallkata[x]
+            if on[on.index(x)-1] == "シ":
+                on_result = on_result[:len(on_result)-3]
+                if on[on.index(x)] == "ョ": 
+                    on_result += "sho"
+                if on[on.index(x)] == "ュ": 
+                    on_result += "shu"
+                if on[on.index(x)] == "ャ": 
+                    on_result += "sha"
+            elif on[on.index(x)-1] == "チ":
+                on_result = on_result[:len(on_result)-3]
+                if on[on.index(x)] == "ョ": 
+                    on_result += "cho"
+                if on[on.index(x)] == "ュ": 
+                    on_result += "chu"
+                if on[on.index(x)] == "ャ": 
+                    on_result += "cha"
+            else:
+                on_result = on_result[:len(on_result)-1]
+                on_result += smallkata[x]
         if x == ',':
             on_result += ',　'
             
@@ -133,28 +137,32 @@ def get_on_romanji(on):
     
 def get_kun_romanji(kun):
     kun_result = ""
-    for x in range(0, len(kun)):
-        if kun[x] == "ょ" and kun[x-1] == "し":
-            kun_result += 'sho'
-        if kun[x] == "ゅ" and kun[x-1] == "し":
-            kun_result += 'shu'
-        if kun[x] == "ゃ" and kun[x-1] == "し":
-            kun_result += 'sha'
-        if kun[x] == "ょ" and kun[x-1] == "じ":
-            kun_result += 'jo'
-        if kun[x] == "ゅ" and kun[x-1] == "じ":
-            kun_result += 'ju'
-        if kun[x] == "ゃ" and kun[x-1] == "じ":
-            kun_result += 'ja'
-
+    #kun_result += smallkata[x]
     for x in kun:
         if x in hirarom_map:
             kun_result += hirarom_map[x]
         if x in dakuhirarom_map:
             kun_result += dakuhirarom_map[x]
         if x in smallkata:
-            kun_result = kun_result[:len(kun_result)-1]
-            kun_result += smallhira[x]
+            if kun[kun.index(x)-1] == "し":
+                kun_result = kun_result[:len(kun_result)-3]
+                if kun[kun.index(x)] == "ょ": 
+                    kun_result += 'sho'
+                if kun[kun.index(x)] == "ゅ":
+                    kun_result += 'shu'
+                if kun[kun.index(x)] == "ゃ":
+                    kun_result += 'sha'
+            elif kun[kun.index(x)-1] == "ち":
+                kun_result = kun_result[:len(kun_result)-3]
+                if kun[kun.index(x)] == "ょ": 
+                    kun_result += 'cho'
+                if kun[kun.index(x)] == "ゅ":
+                    kun_result += 'chu'
+                if kun[kun.index(x)] == "ゃ":
+                    kun_result += 'cha'
+            else:
+                kun_result = kun_result[:len(kun_result)-1]
+                kun_result += smallhira[x]
         if x == ',':
             kun_result += ',　'
         if x == '.':
@@ -169,35 +177,55 @@ final_on_examples2 = ""
 final_kun_examples1 = ""
 final_kun_examples2 = ""
 
+#onkanji1, onreading1, onromaji1, onmeaning1, onkanji2, onreading2, onromaji2, onmeaning2, kunkanji1, kunreading1, kunromaji1, kunmeaning1, kunkanji2, kunreading2, kunromaji2, kunmeaning2 = [""]*16
+
+def get_on_examples(on_examples):
+    onkanji1, onreading1, onromaji1, onmeaning1, onkanji2, onreading2, onromaji2, onmeaning2 = [""]*8
+    try:
+        onkanji1 = on_examples[0].get("kanji")
+        onreading1 = on_examples[0].get("reading")
+        onromaji1 = get_on_romanji(on_examples[0].get("reading"))
+        onmeaning1 = ",　".join(on_examples[0].get("meanings"))
+        
+        onkanji2 = on_examples[1].get("kanji")
+        onreading2 = on_examples[1].get("reading")
+        onromaji2 = get_on_romanji(on_examples[1].get("reading"))
+        onmeaning2 = ",　".join(on_examples[1].get("meanings"))
+    except:
+        pass
+    return f"{onkanji1:6} {onreading1:14} {onromaji1:14} {onmeaning1:}\n{onkanji2:6} {onreading2:14} {onromaji2:14} {onmeaning2:}"
+
+def get_kun_examples(kun_examples):
+    kunkanji1, kunreading1, kunromaji1, kunmeaning1, kunkanji2, kunreading2, kunromaji2, kunmeaning2 = [""]*8
+    try:
+        kunkanji1 = kun_examples[0].get("kanji")
+        kunreading1 = kun_examples[0].get("reading")
+        kunromaji1 = get_kun_romanji(kun_examples[0].get("reading"))
+        kunmeanings1 = ",　".join(kun_examples[0].get("meanings"))
+        
+        kunkanji2 = kun_examples[1].get("kanji")
+        kunreading2 = kun_examples[1].get("reading")
+        kunromaji2 = get_kun_romanji(kun_examples[1].get("reading"))
+        kunmeanings2 = ",　".join(kun_examples[1].get("meanings"))
+    except:
+        pass
+    
+    return f"{kunkanji1:6} {kunreading1:14} {kunromaji1:14} {kunmeaning1:}\n{kunkanji2:6} {kunreading2:14} {kunromaji2:14} {kunmeaning2:}"
+
 try:
     on = ",　".join(main_readings(soup).get("on"))
     on = on + "　" + get_on_romanji(on)
     kun = ",　".join(main_readings(soup).get("kun"))
     kun = kun + "　" + get_kun_romanji(kun)
     
-except Exception as e:
-    print("Problem: " + str(e))
+except:
+    pass
 
 on_examples = reading_examples(soup).get("on")
 kun_examples = reading_examples(soup).get("kun")
-try:
-    final_on_examples1 = (on_examples[0].get("kanji") + "　" + on_examples[0].get("reading") + "　" + get_on_romanji(on_examples[0].get("reading")) + " |　" + ",　".join(on_examples[0].get("meanings")) + '\n')
-    final_on_examples2 = (on_examples[1].get("kanji") + "　" + on_examples[1].get("reading")) + "　" + get_on_romanji(on_examples[1].get("reading")) + " |　" + ",　".join(on_examples[1].get("meanings"))
-except:
-    pass
-    
-final_on_examples = final_on_examples1 + final_on_examples2
-    
-try:
-    final_kun_examples1 = (kun_examples[0].get("kanji") + "　" + kun_examples[0].get("reading") + "　" + get_kun_romanji(kun_examples[0].get("reading")) + " |　" + ",　".join(kun_examples[0].get("meanings")) + '\n')
-    final_kun_examples2 = (kun_examples[1].get("kanji") + "　" + kun_examples[1].get("reading")) + "　" + get_kun_romanji(kun_examples[1].get("reading")) + " |　" + ",　".join(kun_examples[1].get("meanings"))
-except:
-    pass
-    
-final_kun_examples = final_kun_examples1 + final_kun_examples2
 
-
-
-print("Todays kanji of the day is" + "\n" + todayskanji + " " + ", ".join(main_meanings(soup)))
-print("onyomi: " + on + "\n" + "kunyomi: " + kun)
-print("Examples: " + "\n" + final_on_examples + "\n" + final_kun_examples)
+kusa = ", ".join(main_meanings(soup))
+print(f"Todays kanji of the day is \n```{todayskanji:1} {kusa:}")
+print(f"onyomi: {on:7} \nkunyomi: {kun:}")
+print(get_on_examples(on_examples))
+print(get_kun_examples(kun_examples)+"```")
