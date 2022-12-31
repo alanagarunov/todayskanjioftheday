@@ -12,7 +12,7 @@ Examples:
 ```  
 Notes:  
 - Some kanjis do not have kunyomi or onyomi readings, that has been accounted for.  
-- Sometimes the kanji isn't used in the examples that get scraped. This is because there are many kanji that often share the same meaning and pronunciation with each other, often times because one is the Kyūjitai form of the other. Jisho knows this displays the most common form, which may be different from the one searched. You will still see the kanji under "other forms" though.
+- Sometimes the kanji isn't used in the examples that get scraped. This is because there are many kanji that often share the same meaning and pronunciation with each other, often times because one is either the Kyūjitai form of the other or some variant. Jisho knows this displays the most common form, which may be different from the one searched. You will still see the kanji under "other forms" though.
 
 There's also a web scraper for Google's weather card when you google "weather [city name]". I added it because I thought it was cool.
 
